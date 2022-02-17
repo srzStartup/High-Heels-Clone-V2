@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
+using DG.Tweening;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -16,49 +17,43 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private HeelsEventChannel _heelsEventChannel;
 
     private int _gemCollected = 0;
-
-    private float _gravity = -9.8f;
+    private int _currentHeelCount;
+    private float _heelLength;
 
     private Animator _animator;
-    private CharacterController _charController;
 
     private void Awake()
     {
         _inGameEventChannel.LevelStartedEvent += OnLevelStarted;
 
-        _heelsEventChannel.HeelsLengthChangedEvent += OnHeelsLengthChanged;
+        _heelsEventChannel.HeelsReadyEvent += OnHeelsReady;
+        _heelsEventChannel.HeelsCountChangedEvent += OnHeelsCountChanged;
+        _heelsEventChannel.HeelsPoppedEvent += OnHeelsPopped;
     }
 
     private void OnDestroy()
     {
         _inGameEventChannel.LevelStartedEvent -= OnLevelStarted;
 
-        _heelsEventChannel.HeelsLengthChangedEvent -= OnHeelsLengthChanged;
-    }
-
-    private void OnHeelsLengthChanged(float diff)
-    {
-        Debug.Log(_charController.isGrounded);
-
-        _charController.skinWidth += diff;
+        _heelsEventChannel.HeelsReadyEvent -= OnHeelsReady;
+        _heelsEventChannel.HeelsCountChangedEvent -= OnHeelsCountChanged;
+        _heelsEventChannel.HeelsPoppedEvent -= OnHeelsPopped;
     }
 
     private void Start()
     {
         _animator = GetComponent<Animator>();
-        _charController = GetComponent<CharacterController>();
     }
 
     private void Update()
     {
-        HandleGravity();
         Run();
         MoveLateral();
     }
 
-    private void OnControllerColliderHit(ControllerColliderHit hit)
+    private void OnTriggerEnter(Collider other)
     {
-        if (hit.collider.transform.TryGetComponent(out CollectibleItem item))
+        if (other.transform.TryGetComponent(out CollectibleItem item))
         {
             switch (item.ItemType)
             {
@@ -70,11 +65,11 @@ public class PlayerController : MonoBehaviour
                     break;
             }
 
-            hit.collider.gameObject.SetActive(false);
+            other.gameObject.SetActive(false);
         }
-        else if (hit.collider.gameObject.name.StartsWith("Obstacle"))
+        else if (other.gameObject.name.Contains("Obstacle"))
         {
-            _heelsEventChannel.RaiseCollideObstacleEvent(1);
+            _heelsEventChannel.RaiseCollideObstacleEvent(other, 1);
         }
     }
 
@@ -82,23 +77,20 @@ public class PlayerController : MonoBehaviour
     {
         _animator.SetFloat("_speed", 1.0f);
 
-        _charController.Move(new Vector3(0, _gravity, _forwardSpeed * Time.deltaTime));
+        transform.Translate(0, 0, _forwardSpeed * Time.deltaTime);
     }
 
     private void MoveLateral()
     {
-        _charController.Move(new Vector3(ScreenInputManager.Instance.swipeDelta, _gravity, 0));
-    }
+        float positionX = transform.position.x + ScreenInputManager.Instance.swipeDelta;
 
-    private void HandleGravity()
-    {
-        if (!_charController.isGrounded)
-        {
-            _gravity = -9.8f;
-            return;
-        }
+        if (positionX < -_moveRange || positionX > _moveRange) positionX = transform.position.x;
 
-        _gravity = -.5f;
+        transform.position = new Vector3(
+            positionX,
+            transform.position.y,
+            transform.position.z
+        );
     }
 
     private void OnLevelStarted(int totalGem)
@@ -107,18 +99,26 @@ public class PlayerController : MonoBehaviour
         _gemCollected = totalGem;
     }
 
-    private Collider FindBelow(Collider other)
+    private void OnHeelsReady(List<Transform> readyHeels)
     {
-        Collider below = Physics.OverlapSphere(other.transform.position, .5f)
-                            .ToList()
-                            .Find(collider => collider.transform.position.y < other.transform.position.y);
+        _heelLength = readyHeels[0].Find("BaseHeel").GetComponent<Renderer>().bounds.size.y;
+    }
 
-        if (below == null)
-        {
-            // throwing custom not found exception would be better
-            throw new SystemException();
-        }
+    private void OnHeelsCountChanged(int heelCount, float heelLength)
+    {
+        _currentHeelCount = heelCount;
+        transform.position = new Vector3(
+            transform.position.x,
+            heelCount * heelLength,
+            transform.position.z
+        );
+    }
 
-        return below;
+    private void OnHeelsPopped(int count)
+    {
+        _currentHeelCount -= count;
+
+        transform.DOMove(new Vector3(transform.position.x, transform.position.y + 1, transform.position.z + 2), .1f)
+            .OnComplete(() => transform.DOJump(new Vector3(transform.position.x, _currentHeelCount * _heelLength, transform.position.z + 2), 1, 1, .5f));
     }
 }
