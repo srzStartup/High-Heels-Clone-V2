@@ -128,8 +128,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c781bbe4a5c47ae4d8d480e7aa8cfdcb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _stackedObject: {fileID: 4027107955152639472}
   _node: {fileID: 914852698863527667}
   _multiParentedTransform: {fileID: 3863521972156529333}
+  _weight: 1
 --- !u!1 &5045262200378398775
 GameObject:
   m_ObjectHideFlags: 0

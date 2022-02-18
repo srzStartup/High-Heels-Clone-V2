@@ -6,8 +6,11 @@ using UnityEngine.Animations.Rigging;
 
 public class Stackable : MonoBehaviour
 {
+    [SerializeField] private Transform _stackedObject;
     [SerializeField] private Transform _node;
     [SerializeField] private Transform _multiParentedTransform;
+
+    public Transform stackedObject => _stackedObject;
 
     public void SetConstrainedObject(Transform tr)
     {
@@ -16,7 +19,7 @@ public class Stackable : MonoBehaviour
 
         MultiParentConstraint constraint = _multiParentedTransform.GetComponent<MultiParentConstraint>();
 
-        WeightedTransform sourceObject = new WeightedTransform(_node, 1.0f);
+        WeightedTransform sourceObject = new WeightedTransform(_node, 1);
         WeightedTransformArray sourceObjects = new WeightedTransformArray(1);
 
         sourceObjects.Add(sourceObject);

@@ -43,4 +43,10 @@ public class GameManager : Singleton<GameManager>
         IsLevelStarted = true;
         _inGameEventChannel.RaiseLevelStartedEvent(_collectibleCount);
     }
+
+    public void EndLevel()
+    {
+        IsFailed = true;
+        _inGameEventChannel.RaiseLevelFailedEvent();
+    }
 }

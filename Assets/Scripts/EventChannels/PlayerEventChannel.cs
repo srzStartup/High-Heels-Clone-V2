@@ -7,10 +7,11 @@ using UnityEngine.Events;
 [CreateAssetMenu(menuName = "Event Channels/Player Event Channel")]
 public class PlayerEventChannel : ScriptableObject
 {
-    public UnityAction PlayerMovedEvent;
+    public UnityAction<float, Vector3> PlayerMoveEvent;
 
-    public void RaisePlayerMovedEvent()
+    // speed + direction = velocity?
+    public void RaisePlayerMoveEvent(float speed, Vector3 direction)
     {
-        PlayerMovedEvent?.Invoke();
+        PlayerMoveEvent?.Invoke(speed, direction);
     }
 }

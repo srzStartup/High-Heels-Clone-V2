@@ -63,12 +63,14 @@
     <Compile Include="Assets\Scripts\Controllers\CanvasController.cs" />
     <Compile Include="Assets\Scripts\EventChannels\PlayerEventChannel.cs" />
     <Compile Include="Assets\Scripts\Utils\Singleton.cs" />
+    <Compile Include="Assets\Scripts\Stackable.cs" />
     <Compile Include="Assets\Scripts\CollectibleItem.cs" />
     <Compile Include="Assets\Scripts\MovingObstacle.cs" />
     <Compile Include="Assets\Scripts\EventChannels\InGameEventChannel.cs" />
     <Compile Include="Assets\Scripts\Controllers\PlayerController.cs" />
     <Compile Include="Assets\Scripts\EventChannels\HeelsEventChannel.cs" />
-    <Compile Include="Assets\Scripts\Stackable.cs" />
+    <Compile Include="Assets\Scripts\Managers\PlayerManager.cs" />
+    <Compile Include="Assets\Scripts\Managers\ObstacleGroupManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shaders\Normal-Diffuse-Worldspace.shader" />

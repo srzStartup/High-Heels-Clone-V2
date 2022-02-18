@@ -7,17 +7,17 @@ using UnityEngine.Events;
 [CreateAssetMenu(menuName = "Event Channels/Heels Event Channel")]
 public class HeelsEventChannel : ScriptableObject
 {
-    public UnityAction<List<Transform>> HeelsReadyEvent;
+    public UnityAction<List<Stackable>, float> HeelsReadyEvent;
 
     public UnityAction HeelsCollectedEvent;
-    public UnityAction<int, float> HeelsCountChangedEvent;
     public UnityAction<float> HeelsPushedEvent;
-    public UnityAction<int> HeelsPoppedEvent;
-    public UnityAction<Collider, int> CollideObstacleEvent;
+    public UnityAction<float> HeelsPoppedEvent;
+    public UnityAction OutOfHeelsEvent;
+    public UnityAction<Collider> CollideObstacleEvent;
 
-    public void RaiseHeelsReadyEvent(List<Transform> heels)
+    public void RaiseHeelsReadyEvent(List<Stackable> heels, float totalHeelSize)
     {
-        HeelsReadyEvent?.Invoke(heels);
+        HeelsReadyEvent?.Invoke(heels, totalHeelSize);
     }
 
     public void RaiseHeelsCollectedEvent()
@@ -30,18 +30,18 @@ public class HeelsEventChannel : ScriptableObject
         HeelsPushedEvent?.Invoke(heelSize);
     }
 
-    public void RaiseHeelsCountChangedEvent(int currentCount, float length)
+    public void RaiseHeelsPoppedEvent(float heelSize)
     {
-        HeelsCountChangedEvent?.Invoke(currentCount, length);
+        HeelsPoppedEvent?.Invoke(heelSize);
     }
 
-    public void RaiseHeelsPoppedEvent(int count)
+    public void RaiseOutOfHeelsEvent()
     {
-        HeelsPoppedEvent?.Invoke(count);
+        OutOfHeelsEvent?.Invoke();
     }
 
-    public void RaiseCollideObstacleEvent(Collider other, int count)
+    public void RaiseCollideObstacleEvent(Collider other)
     {
-        CollideObstacleEvent?.Invoke(other, count);
+        CollideObstacleEvent?.Invoke(other);
     }
 }
