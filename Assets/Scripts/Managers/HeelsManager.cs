@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-using DG.Tweening;
 using UnityEngine;
 
 public class HeelsManager : Singleton<HeelsManager>
@@ -38,16 +37,7 @@ public class HeelsManager : Singleton<HeelsManager>
 
     private void Start()
     {
-        List<Stackable> initialHeels = new List<Stackable>()
-        {
-            heelLeft.parent.GetComponent<Stackable>(),
-            heelRight.parent.GetComponent<Stackable>()
-        };
-        _heels = new Stack<List<Stackable>>();
-        _heels.Push(initialHeels);
-
-        _baseHeelSize = initialHeels.First().stackedObject.GetComponent<Renderer>().bounds.size.y;
-        _heelsEventChannel.RaiseHeelsReadyEvent(initialHeels, totalHeelSize);
+        StackInitialHeels();
     }
 
     private void OnCollideObstacle(Collider other)
@@ -99,5 +89,19 @@ public class HeelsManager : Singleton<HeelsManager>
         _heelsCount++;
 
         _heelsEventChannel.RaiseHeelsPushedEvent(totalHeelSize);
+    }
+
+    private void StackInitialHeels()
+    {
+        List<Stackable> initialHeels = new List<Stackable>()
+        {
+            heelLeft.parent.GetComponent<Stackable>(),
+            heelRight.parent.GetComponent<Stackable>()
+        };
+        _heels = new Stack<List<Stackable>>();
+        _heels.Push(initialHeels);
+
+        _baseHeelSize = initialHeels.First().stackedObject.GetComponent<Renderer>().bounds.size.y;
+        _heelsEventChannel.RaiseHeelsReadyEvent(initialHeels, totalHeelSize);
     }
 }

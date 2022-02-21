@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 using DG.Tweening;
 using UnityEngine;
@@ -9,19 +10,24 @@ public class PlayerManager : Singleton<PlayerManager>
 {
     [Header("It's okey to leave as none if the manager is player's compononet.")]
     [SerializeField] private Transform _player;
+    [SerializeField] private Transform _ragdollRoot;
+    [SerializeField] private Transform[] _ignoreRagdollColliders;
 
     [Header("Event Channels")]
     [SerializeField] private PlayerEventChannel _playerEventChannel;
     [SerializeField] private InGameEventChannel _inGameEventChannel;
     [SerializeField] private HeelsEventChannel _heelsEventChannel;
 
+    private List<Collider> _ragdollParts;
+
     private int _gemCollected;
 
-    // Collider handling (temporary)
-    private float _initalColliderSizeY;
+    private Bounds _initialColliderBounds;
 
     public override void Awake()
     {
+        SetRagdollParts();
+
         _inGameEventChannel.LevelStartedEvent += OnLevelStarted;
 
         _playerEventChannel.PlayerMoveEvent += OnPlayerMove;
@@ -47,8 +53,6 @@ public class PlayerManager : Singleton<PlayerManager>
     private void Start()
     {
         _player = _player != null ? _player : transform;
-
-        _initalColliderSizeY = GetComponent<BoxCollider>().size.y;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -80,12 +84,14 @@ public class PlayerManager : Singleton<PlayerManager>
 
     private void OnHeelsReady(List<Stackable> initialHeels, float totalHeelSize)
     {
+        DisableRagdoll();
+
         transform.position = new Vector3(
             transform.position.x,
             totalHeelSize,
             transform.position.z
         );
-
+        _initialColliderBounds = transform.GetComponent<BoxCollider>().bounds;
         HandleCollider(totalHeelSize);
     }
 
@@ -116,23 +122,59 @@ public class PlayerManager : Singleton<PlayerManager>
 
     private void OnOutOfHeels()
     {
-        GetComponent<Animator>()
-            .SetTrigger("_failed");
+        transform.GetComponent<Rigidbody>()
+            .constraints = RigidbodyConstraints.None;
+
+        transform.GetComponent<Animator>()
+            .enabled = false;
+
+        EnableRagdoll();
+
+        _playerEventChannel.RaisePlayerDeadEvent();
     }
 
     private void HandleCollider(float totalHeelSize)
     {
-        BoxCollider playerCollider = GetComponent<BoxCollider>();
-        playerCollider.size = new Vector3(
-            playerCollider.size.x,
-            _initalColliderSizeY + totalHeelSize / transform.localScale.y,
-            playerCollider.size.z
+        BoxCollider collider = GetComponent<BoxCollider>();
+
+        float updatedSize = totalHeelSize / collider.transform.localScale.y;
+        float initialColliderSizeLocalY = _initialColliderBounds.size.y / collider.transform.localScale.y;
+
+        collider.size = new Vector3(
+            collider.size.x,
+            initialColliderSizeLocalY + updatedSize,
+            collider.size.z
         );
 
-        playerCollider.center = new Vector3(
-            playerCollider.center.x,
-            playerCollider.center.y - totalHeelSize / transform.localScale.y / 2,
-            playerCollider.center.z
+        collider.center = new Vector3(
+            collider.center.x,
+            // WHY???????
+            collider.center.y - (updatedSize / 4),
+            collider.center.z
         );
+    }
+
+    private void SetRagdollParts()
+    {
+        _ragdollParts = _ragdollRoot.GetComponentsInChildren<Transform>()
+            .ToList()
+            .FindAll(ragdollPart => ragdollPart.GetComponent<Collider>() && !_ignoreRagdollColliders.Contains(ragdollPart))
+            .ConvertAll(ragdollPart => ragdollPart.GetComponent<Collider>());
+    }
+
+    private void DisableRagdoll()
+    {
+        _ragdollParts.ForEach(collider =>
+            {
+                collider.isTrigger = true;
+            });
+    }
+
+    private void EnableRagdoll()
+    {
+        _ragdollParts.ForEach(collider =>
+            {
+                collider.isTrigger = false;
+            });
     }
 }

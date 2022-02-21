@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -15,13 +16,15 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         _inGameEventChannel.LevelStartedEvent += OnLevelStarted;
-        _inGameEventChannel.LevelFailedEvent += OnLevelFailed;
+
+        _playerEventChannel.PlayerDeadEvent += OnPlayerDead;
     }
 
     private void OnDestroy()
     {
         _inGameEventChannel.LevelStartedEvent -= OnLevelStarted;
-        _inGameEventChannel.LevelFailedEvent -= OnLevelFailed;
+
+        _playerEventChannel.PlayerDeadEvent -= OnPlayerDead;
     }
 
     private void Update()
@@ -54,7 +57,7 @@ public class PlayerController : MonoBehaviour
         enabled = true;
     }
 
-    private void OnLevelFailed()
+    private void OnPlayerDead()
     {
         enabled = false;
     }

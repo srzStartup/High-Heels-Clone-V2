@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class ObstacleGroupManager : MonoBehaviour
 {
-    // Represents obstacles.
+    // obstacles.
     private List<Transform> _childs;
     private bool _triggeredOnce = false;
 
@@ -65,19 +65,16 @@ public class ObstacleGroupManager : MonoBehaviour
     {
         if (_triggeredOnce) return 0;
         _triggeredOnce = true;
-        Debug.Log(obstacle.name);
+
         if (UpperOneExists(obstacle))
         {
-            Debug.Log("geçti");
             Transform obstacleTop = GetMainObstacle(obstacle);
             return FindObstacleLevel(obstacleTop);
         }
         if (LowerOneExists(obstacle))
         {
-            Debug.Log("geçti");
             return FindObstacleLevel(obstacle);
         }
-        Debug.Log("geçti");
         return 1;
     }
 
