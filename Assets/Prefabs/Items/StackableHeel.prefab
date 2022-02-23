@@ -158,3 +158,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _heelsEventChannel: {fileID: 11400000, guid: 4bef10f652150fc47aed5ac9cd4b13a7, type: 2}
+  _playerEventChannel: {fileID: 11400000, guid: b24a0a985a770d741863e91431fb6cf2, type: 2}

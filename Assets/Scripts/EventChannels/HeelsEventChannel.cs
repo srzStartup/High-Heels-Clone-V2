@@ -18,6 +18,8 @@ public class HeelsEventChannel : ScriptableObject
     public UnityAction CollideWithNoHeels;
     public UnityAction<Collider, ObstacleGroupManager> CollideObstacleEvent;
     public UnityAction<Collider, ItemType> CollideCollectibleEvent;
+    public UnityAction HeelsGroundedEvent;
+    public UnityAction<Collider, BalkTrigger> BalkTriggerEnterEvent;
 
     public void RaiseHeelsReadyEvent(List<Stackable> heels, float totalHeelSize)
     {
@@ -62,5 +64,15 @@ public class HeelsEventChannel : ScriptableObject
     public void RaiseCollideCollectibleEvent(Collider other, ItemType itemType)
     {
         CollideCollectibleEvent?.Invoke(other, itemType);
+    }
+
+    public void RaiseHeelsGroundedEvent()
+    {
+        HeelsGroundedEvent?.Invoke();
+    }
+
+    public void RaiseBalkTriggerEnterEvent(Collider other, BalkTrigger balkTrigger)
+    {
+        BalkTriggerEnterEvent?.Invoke(other, balkTrigger);
     }
 }

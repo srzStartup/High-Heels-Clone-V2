@@ -10,12 +10,16 @@ public class Stackable : MonoBehaviour
     [SerializeField] private Transform _node;
     [SerializeField] private Transform _multiParentedTransform;
 
+    public Stackable stackableObject { get; private set; }
+
     public Transform stackedObject => _stackedObject;
 
-    public void SetConstrainedObject(Transform tr)
+    public bool isReleased { get; set; }
+
+    public void SetConstrainedObject(Stackable tr)
     {
-        tr.parent = _multiParentedTransform;
-        tr.localPosition = Vector3.zero;
+        tr.transform.parent = _multiParentedTransform;
+        tr.transform.localPosition = Vector3.zero;
 
         MultiParentConstraint constraint = _multiParentedTransform.GetComponent<MultiParentConstraint>();
 
@@ -25,15 +29,21 @@ public class Stackable : MonoBehaviour
         sourceObjects.Add(sourceObject);
 
         constraint.data.sourceObjects = sourceObjects;
-        constraint.data.constrainedObject = tr;
+        constraint.data.constrainedObject = tr.transform;
+
+        stackableObject = tr;
+        stackableObject.isReleased = false;
     }
 
-    public void Detach()
+    public void ReleaseConstrainedObject()
     {
         MultiParentConstraint constraint = _multiParentedTransform.GetComponent<MultiParentConstraint>();
         Transform constrainedObject = constraint.data.constrainedObject;
         constrainedObject.parent = null;
         constraint.data.constrainedObject = null;
         constraint.data.sourceObjects.Clear();
+
+        stackableObject.isReleased = true;
+        stackableObject = null;
     }
 }

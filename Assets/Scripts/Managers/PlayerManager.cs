@@ -9,26 +9,24 @@ using UnityEngine.Animations.Rigging;
 
 public class PlayerManager : Singleton<PlayerManager>
 {
-    [Header("It's okey to leave as none if the manager is player's compononet.")]
     [SerializeField] private Transform _player;
+    [SerializeField] private Transform _platform;
     [SerializeField] private Transform _ragdollRoot;
     [SerializeField] private Transform[] _ignoreRagdollColliders;
+
+    [Header("Leg Openers")]
+    [SerializeField] private Rig[] _legOpenerRigs;
 
     [Header("Event Channels")]
     [SerializeField] private PlayerEventChannel _playerEventChannel;
     [SerializeField] private InGameEventChannel _inGameEventChannel;
     [SerializeField] private HeelsEventChannel _heelsEventChannel;
 
-    public Transform leftHeelRig;
-    public Transform rightHeelRig;
-
     private List<Collider> _ragdollParts;
 
     private PlayerState playerState;
     private int _gemCollected;
     private bool _colliderOn = false;
-
-    private Bounds _initialColliderBounds;
 
     public override void Awake()
     {
@@ -41,8 +39,10 @@ public class PlayerManager : Singleton<PlayerManager>
         _heelsEventChannel.HeelsPushedEvent += OnHeelsPushed;
         _heelsEventChannel.HeelsPoppedEvent += OnHeelsPopped;
         _heelsEventChannel.CollideCollectibleEvent += OnCollideCollectible;
+        _heelsEventChannel.HeelsGroundedEvent += OnHeelsGrounded;
         _heelsEventChannel.NoHeelsEvent += OnNoHeels;
         _heelsEventChannel.ExistHeelsEvent += OnExistHeels;
+        _heelsEventChannel.BalkTriggerEnterEvent += OnBalkTrigger;
     }
 
     private void OnDestroy()
@@ -54,8 +54,10 @@ public class PlayerManager : Singleton<PlayerManager>
         _heelsEventChannel.HeelsPushedEvent -= OnHeelsPushed;
         _heelsEventChannel.HeelsPoppedEvent -= OnHeelsPopped;
         _heelsEventChannel.CollideCollectibleEvent -= OnCollideCollectible;
+        _heelsEventChannel.HeelsGroundedEvent -= OnHeelsGrounded;
         _heelsEventChannel.NoHeelsEvent -= OnNoHeels;
         _heelsEventChannel.ExistHeelsEvent -= OnExistHeels;
+        _heelsEventChannel.BalkTriggerEnterEvent -= OnBalkTrigger;
     }
 
     private void Start()
@@ -63,7 +65,7 @@ public class PlayerManager : Singleton<PlayerManager>
         _player = _player != null ? _player : transform;
     }
 
-    private void OnCollisionEnter(UnityEngine.Collision collision)
+    private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.name.ToLower().Contains("platform") && playerState == PlayerState.Falling)
         {
@@ -88,6 +90,11 @@ public class PlayerManager : Singleton<PlayerManager>
         {
             _heelsEventChannel.RaiseCollideObstacleEvent(other, obstacleGroupManager);
         }
+
+        if (other.gameObject.TryGetComponent(out BalkTrigger balkTrigger))
+        {
+            _heelsEventChannel.RaiseBalkTriggerEnterEvent(other, balkTrigger);
+        }
     }
 
     private void OnLevelStarted(int totalGem)
@@ -104,38 +111,31 @@ public class PlayerManager : Singleton<PlayerManager>
 
         transform.position = new Vector3(
             transform.position.x,
-            totalHeelSize,
+            _platform.position.y + totalHeelSize,
             transform.position.z
         );
-
-        _initialColliderBounds = transform.GetComponent<BoxCollider>().bounds;
-        //HandleCollider(totalHeelSize);
-
-        //_isGrounded = true;
     }
 
     private void OnHeelsPushed(float totalHeelSize)
     {
         transform.position = new Vector3(
             transform.position.x,
-            totalHeelSize,
+            _platform.position.y + totalHeelSize,
             transform.position.z
         );
-
-        //HandleCollider(totalHeelSize);
     }
 
     private void OnHeelsPopped(float totalHeelSize)
     {
         playerState = PlayerState.Falling;
+        GetComponent<Animator>().SetTrigger("_walk");
         _playerEventChannel.RaisePlayerStateChangedEvent(playerState);
-        GetComponent<Animator>().SetTrigger("_idle");
-        _playerEventChannel.RaisePlayerIdleEvent();
 
         transform.DOMoveZ(transform.position.z + .5f, .1f)
-            .OnComplete(() => GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeRotation);
-
-        //HandleCollider(totalHeelSize);
+            .OnComplete(() => 
+            {
+                GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeRotation;
+            });
     }
 
     private void OnCollideWithNoHeels()
@@ -174,26 +174,13 @@ public class PlayerManager : Singleton<PlayerManager>
         }
     }
 
-    //private void HandleCollider(float totalHeelSize)
-    //{
-    //    BoxCollider collider = GetComponent<BoxCollider>();
-
-    //    float updatedSize = totalHeelSize / collider.transform.localScale.y;
-    //    float initialColliderSizeLocalY = _initialColliderBounds.size.y / collider.transform.localScale.y;
-
-    //    collider.size = new Vector3(
-    //        collider.size.x,
-    //        initialColliderSizeLocalY + updatedSize,
-    //        collider.size.z
-    //    );
-
-    //    collider.center = new Vector3(
-    //        collider.center.x,
-    //        // WHY???????
-    //        collider.center.y - (updatedSize / 4),
-    //        collider.center.z
-    //    );
-    //}
+    public void OnHeelsGrounded()
+    {
+        GetComponent<Animator>().SetTrigger("_walk");
+        GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
+        playerState = PlayerState.Grounded;
+        _playerEventChannel.RaisePlayerStateChangedEvent(playerState);
+    }
 
     private void OnExistHeels()
     {
@@ -203,6 +190,17 @@ public class PlayerManager : Singleton<PlayerManager>
     private void OnNoHeels()
     {
         _colliderOn = true;
+    }
+
+    private void OnBalkTrigger(Collider other, BalkTrigger balkTrigger)
+    {
+        GetComponent<Animator>()
+            .SetTrigger("_clap");
+
+        foreach (Rig legOpenerRig in _legOpenerRigs)
+        {
+            legOpenerRig.weight = 1;
+        }
     }
 
     private void SetRagdollParts()

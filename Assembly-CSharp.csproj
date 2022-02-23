@@ -62,6 +62,7 @@
     <Compile Include="Assets\Scripts\Managers\ObstacleGroupManager.cs" />
     <Compile Include="Assets\Scripts\Controllers\CameraController.cs" />
     <Compile Include="Assets\Scripts\Controllers\CanvasController.cs" />
+    <Compile Include="Assets\Scripts\HeelsCollisionController.cs" />
     <Compile Include="Assets\Scripts\Managers\PlayerManager.cs" />
     <Compile Include="Assets\Scripts\EventChannels\PlayerEventChannel.cs" />
     <Compile Include="Assets\Scripts\Utils\Singleton.cs" />
@@ -71,7 +72,7 @@
     <Compile Include="Assets\Scripts\EventChannels\InGameEventChannel.cs" />
     <Compile Include="Assets\Scripts\Controllers\PlayerController.cs" />
     <Compile Include="Assets\Scripts\EventChannels\HeelsEventChannel.cs" />
-    <Compile Include="Assets\Scripts\Collision.cs" />
+    <Compile Include="Assets\Scripts\BalkTrigger.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shaders\Normal-Diffuse-Worldspace.shader" />

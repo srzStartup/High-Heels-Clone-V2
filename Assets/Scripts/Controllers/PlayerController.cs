@@ -14,9 +14,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private PlayerEventChannel _playerEventChannel;
     [SerializeField] private InGameEventChannel _inGameEventChannel;
 
-    private PlayerState playerState;
     private float _currentSpeed;
-    private bool enabledOnce = false;
 
     private void Awake()
     {
@@ -54,7 +52,6 @@ public class PlayerController : MonoBehaviour
 
     public void OnPlayerStateChanged(PlayerState newState)
     {
-        Debug.Log(newState);
         switch (newState)
         {
             case PlayerState.StartMoving:
@@ -88,7 +85,5 @@ public class PlayerController : MonoBehaviour
 
                 break;
         }
-
-        playerState = newState;
     }
 }

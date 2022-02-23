@@ -35,6 +35,11 @@ public class HeelsManager : Singleton<HeelsManager>
         _heelsEventChannel.CollideObstacleEvent -= OnCollideObstacle;
     }
 
+    private void Update()
+    {
+        Debug.Log(_heelsCount);
+    }
+
     private void Start()
     {
         StackInitialHeels();
@@ -42,9 +47,6 @@ public class HeelsManager : Singleton<HeelsManager>
 
     private void OnCollideObstacle(Collider other, ObstacleGroupManager obstacleGroupManager)
     {
-        float distance = Vector3.Distance(other.transform.position, transform.position);
-        if (distance < .1f) return;
-
         obstacleGroupManager.AllTriggersOff();
         int obstacleLevel = obstacleGroupManager.GetObstacleLevel(other.transform);
         if (obstacleLevel == 0) return;
@@ -60,8 +62,8 @@ public class HeelsManager : Singleton<HeelsManager>
         {
             List<Stackable> lastHeels = _heels.Pop();
 
-            _heels.Peek().ForEach(ancestorHeel => ancestorHeel.Detach());
             lastHeels.ForEach(heel => heel.stackedObject.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None);
+            _heels.Peek().ForEach(ancestorHeel => ancestorHeel.ReleaseConstrainedObject());
         }
 
         _heelsCount -= obstacleLevel;
@@ -82,7 +84,7 @@ public class HeelsManager : Singleton<HeelsManager>
             Transform heelParent = stackableHeelParent.transform;
             Transform stackedHeelTransform = Instantiate(_heelPrefab.transform, heelParent.position, heelParent.rotation);
 
-            stackableHeelParent.SetConstrainedObject(stackedHeelTransform);
+            stackableHeelParent.SetConstrainedObject(stackedHeelTransform.GetComponent<Stackable>());
 
             lastHeels.Add(stackedHeelTransform.GetComponent<Stackable>());
         });
