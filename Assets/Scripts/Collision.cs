@@ -1,28 +1,22 @@
-using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Collision : MonoBehaviour
 {
-    [SerializeField] private string _stackableHeelsTag = "heels";
-    [SerializeField] private string _obstacleTag = "obstacle";
-
-    public static event EventHandler<HeelsCollideEventArgs> HeelsCollide;
-
+    [SerializeField] private HeelsEventChannel _heelsEventChannel;
+    [SerializeField] private InGameEventChannel _inGameEventChannel;
     private void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.CompareTag(_stackableHeelsTag))
+        if (other.gameObject.TryGetComponent(out CollectibleItem item))
         {
-            HeelsCollide?.Invoke(
-                this,
-                new HeelsCollideEventArgs(HeelsCollideType.HEELS, other)
-            );
+            other.isTrigger = false;
+            _heelsEventChannel.RaiseCollideCollectibleEvent(other, item.ItemType);
         }
-        else if (other.gameObject.CompareTag(_obstacleTag))
+
+        if (other.transform.parent && other.transform.parent.TryGetComponent(out ObstacleGroupManager obstacleGroupManager))
         {
-            HeelsCollide?.Invoke(
-                this,
-                new HeelsCollideEventArgs(HeelsCollideType.OBSTACLE, other)
-            );
+            _heelsEventChannel.RaiseCollideObstacleEvent(other, obstacleGroupManager);
         }
     }
 }
