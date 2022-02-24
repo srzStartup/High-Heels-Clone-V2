@@ -35,11 +35,6 @@ public class HeelsManager : Singleton<HeelsManager>
         _heelsEventChannel.CollideObstacleEvent -= OnCollideObstacle;
     }
 
-    private void Update()
-    {
-        Debug.Log(_heelsCount);
-    }
-
     private void Start()
     {
         StackInitialHeels();

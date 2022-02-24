@@ -15,6 +15,7 @@ public class PlayerManager : Singleton<PlayerManager>
     [SerializeField] private Transform[] _ignoreRagdollColliders;
 
     [Header("Leg Openers")]
+    [SerializeField] private Rig[] _heelRigs;
     [SerializeField] private Rig[] _legOpenerRigs;
 
     [Header("Event Channels")]
@@ -194,13 +195,22 @@ public class PlayerManager : Singleton<PlayerManager>
 
     private void OnBalkTrigger(Collider other, BalkTrigger balkTrigger)
     {
-        GetComponent<Animator>()
-            .SetTrigger("_clap");
+        other.isTrigger = false;
+
+        foreach (Rig heelRig in _heelRigs)
+        {
+            heelRig.weight = 0;
+        }
 
         foreach (Rig legOpenerRig in _legOpenerRigs)
         {
             legOpenerRig.weight = 1;
         }
+
+        GetComponent<Animator>().SetTrigger("_clap");
+
+        playerState = PlayerState.Stretching;
+        _playerEventChannel.RaisePlayerStateChangedEvent(playerState);
     }
 
     private void SetRagdollParts()
@@ -236,5 +246,6 @@ public enum PlayerState
     Moving,
     Falling,
     Grounded,
-    Dead
+    Dead,
+    Stretching
 }
